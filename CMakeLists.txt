@@ -9,41 +9,49 @@ set(LUA_VERSION_MAJOR 5 CACHE INTERNAL "" FORCE)
 set(LUA_VERSION_MINOR 3 CACHE INTERNAL "" FORCE)
 set(LUA_VERSION "${LUA_VERSION_MAJOR}.${LUA_VERSION_MINOR}")
 
-set(LUA_PROJECT_NAME "Lua ${LUA_VERSION}")
-project(${LUA_PROJECT_NAME})
-
-set(LUA_BINARY_OUT 
-	"${CMAKE_CURRENT_BINARY_DIR}/build/bin"
-	CACHE STRING
-	"Path into which the shared library should go (if LUA_SHARED_LIB is set)"
-	FORCE
-)
-
-set(LUA_LIBRARY_OUT
-	"${CMAKE_CURRENT_BINARY_DIR}/build/lib"
-	CACHE STRING
-	"Path into which the shared library should go (if LUA_BUILD_BINARIES is set)"
-	FORCE
-)
-
-set(LUA_TOOLS_OUT
-	"${CMAKE_CURRENT_BINARY_DIR}/build/tools"
-	CACHE STRING
-	"Path into which the shared library should go (if LUA_BUILD_BINARIES is set)"
-	FORCE
-)
-
 # CMake 3.0 to support msys and other platforms work;
 # too high for TravisCI but allows for general use
 cmake_minimum_required(VERSION 3.0)
 
-# Allow Lua to be used as a shared library.
-# - The compiler is *always* static due to its internal requirements.
-option(LUA_SHARED_LIB "Build Lua as a shared library" OFF)
+# Project
+set(LUA_PROJECT_NAME "Lua ${LUA_VERSION}")
+project(${LUA_PROJECT_NAME})
+
+if(NOT DEFINED LUA_SHARED_LIB)
+	set(LUA_SHARED_LIB ON)
+endif()
+set(LUA_SHARED_LIB ${LUA_SHARED_LIB} CACHE BOOL
+	"Build Lua as a shared library"
+	FORCE
+)
+
+if(NOT DEFINED LUA_BINARY_OUT)
+	set(LUA_BINARY_OUT "${CMAKE_CURRENT_BINARY_DIR}/build/bin")
+endif()
+set(LUA_BINARY_OUT ${LUA_BINARY_OUT} CACHE STRING
+	"Path into which the shared library should go (if LUA_SHARED_LIB is set)"
+	FORCE
+)
+
+if(NOT DEFINED LUA_LIBRARY_OUT)
+	set(LUA_LIBRARY_OUT "${CMAKE_CURRENT_BINARY_DIR}/build/lib")
+endif()
+set(LUA_LIBRARY_OUT ${LUA_LIBRARY_OUT} CACHE STRING
+	"Path into which the shared library should go (if LUA_BUILD_BINARIES is set)"
+	FORCE
+)
+
+if(NOT DEFINED LUA_TOOLS_OUT)
+	set(LUA_TOOLS_OUT "${CMAKE_CURRENT_BINARY_DIR}/build/tools")
+endif()
+set(LUA_TOOLS_OUT ${LUA_TOOLS_OUT} CACHE STRING
+	"Path into which the shared library should go (if LUA_BUILD_BINARIES is set)"
+	FORCE
+)
 
 # Build default Lua binaries
 # - Useful for debugging and generally mucking around.
-option(LUA_BUILD_BINARIES "Build default Lua binaries (lua and luac)" OFF)
+option(LUA_BUILD_BINARIES "Build default Lua binaries (lua and luac)" ON)
 
 # Include directory
 set(LUA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -113,26 +121,24 @@ SET(LUA_SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/lzio.c"
 )
 
-#set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
 set(LUA_LIBTYPE STATIC)
 if(LUA_SHARED_LIB)
 	set(LUA_LIBTYPE SHARED)
 endif()
 add_library(lua ${LUA_LIBTYPE} ${LUA_INC} ${LUA_SRC})
 
-
 # Build binaries (lua, luac)
 if(LUA_BUILD_BINARIES)
-	# luac[.exe]
-	add_executable(lua_compiler ${LUA_INC} ${LUA_SRC}
-		"${CMAKE_CURRENT_SOURCE_DIR}/src/luac.c"
-	)
 
 	# lua[.exe]
 	add_executable(lua_interpreter
 		${LUA_INC}
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/lua.c"
+	)
+
+	# luac[.exe]
+	add_executable(lua_compiler ${LUA_INC} ${LUA_SRC}
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/luac.c"
 	)
 
 	# Dependencies
