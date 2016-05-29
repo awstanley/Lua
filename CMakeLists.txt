@@ -54,7 +54,10 @@ set(LUA_TOOLS_OUT ${LUA_TOOLS_OUT} CACHE STRING
 option(LUA_BUILD_BINARIES "Build default Lua binaries (lua and luac)" ON)
 
 # Include directory
-set(LUA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(LUA_INCLUDE_DIRECTORY
+	"${CMAKE_CURRENT_SOURCE_DIR}/src"
+	CACHE INTERNAL "" FORCE
+)
 
 set(LUA_INC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/lapi.h"
@@ -193,14 +196,11 @@ if(LUA_BUILD_BINARIES)
 	)
 endif()
 
-# This is used in my build process.
-# LUA_LINK(${TARGET_PROJECT})
-# or
-# LUA_LINK(myproject)
-macro(LUA_LINK TARGET_NAME)
-	include_directories(${LUA_INCLUDE_DIRECTORY})
-	target_link_libraries(${TARGET_NAME} lua)
-endmacro()
+# Global Lua library
+set(LUA_LIBRARY
+	lua
+	CACHE INTERNAL "" FORCE
+)
 
 # This is typically used in my build process.
 install(TARGETS lua
